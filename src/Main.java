@@ -7,9 +7,11 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         String[] items = {"1.Молоко", "2.Яблоки", "3.Хлеб"};
         int[] productsPrices = {100, 150, 90};
-        File file = new File("basket.txt");
+
+        File file = new File("basket.bin");
         Basket basket = new Basket(productsPrices, items);
-        basket.loadFromTxtFile(file);
+
+        basket.loadFromBinFile(file);
         while (true) {
             System.out.println("Список возможных товаров для покупки:");
             for (int i = 0; i < items.length; i++) {
@@ -40,7 +42,8 @@ public class Main {
                 System.out.println("Введите два числа! Было введено: " + input);
                 continue;
             }
-            basket.saveTxt(file);
+
+            basket.saveBin(file);
         }
         basket.printCart();
     }

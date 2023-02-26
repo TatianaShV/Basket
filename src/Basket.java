@@ -1,9 +1,9 @@
 import java.io.*;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Scanner;
 
-public class Basket {
+public class Basket implements Serializable {
+    private static final long serialVersionUID = 1L;
     protected static String[] products;
     protected static int[] prices;
     protected int sumProduct = 0;
@@ -41,6 +41,20 @@ public class Basket {
         System.out.println("Итого: " + sumProduct);
     }
 
+    public void saveBin(File file) throws IOException {
+        try (FileOutputStream out = new FileOutputStream(file);
+             ObjectOutputStream obj = new ObjectOutputStream(out)) {
+            Basket basket = new Basket(prices, products);
+            obj.writeObject(basket);
+            for (int i : count) {
+                obj.writeInt(i);
+                obj.flush();
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     public void saveTxt(File textFile) throws IOException {
         try (PrintWriter out = new PrintWriter(textFile)) {
             for (int i : count) {
@@ -51,7 +65,32 @@ public class Basket {
         }
     }
 
-  public  static Basket loadFromTxtFile(File textFile) throws IOException {
+    public static Basket loadFromBinFile(File file) throws IOException {
+        Basket basket = null;
+
+        try (FileInputStream input = new FileInputStream(file);
+             ObjectInputStream ois = new ObjectInputStream(input)) {
+
+            basket = (Basket) ois.readObject();
+
+            for (int i = 0; i < countFromFile.length; i++) {
+                countFromFile[i] = ois.readInt();
+            }
+
+
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+        for (int i = 0; i < countFromFile.length; i++) {
+            if (countFromFile[i] != 0) {
+                basket.addToCart(i, countFromFile[i]);
+            }
+        }
+        return basket;
+    }
+
+
+    public static Basket loadFromTxtFile(File textFile) throws IOException {
         Basket basket = new Basket(prices, products);
         try (FileReader reader = new FileReader(textFile)) {
             Scanner scanner = new Scanner(reader);
