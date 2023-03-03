@@ -4,17 +4,18 @@ import java.util.Scanner;
 
 public class Basket implements Serializable {
     private static final long serialVersionUID = 1L;
-    protected static String[] products;
-    protected static int[] prices;
+
+    protected String[] products;
+    protected int[] prices;
     protected int sumProduct = 0;
     protected int[] count;
     protected int[] sum;
-    protected static int[] countFromFile;
+
 
 
     public Basket(int[] prices, String[] products) {
-        Basket.prices = prices;
-        Basket.products = products;
+        this.prices = prices;
+        this.products = products;
         count = new int[products.length];
         sum = new int[products.length];
     }
@@ -24,7 +25,6 @@ public class Basket implements Serializable {
         int sumProducts = amount * currentPrice;
         count[productNum] += amount;
         sum[productNum] += sumProducts;
-
     }
 
     public void printCart() {
@@ -73,53 +73,53 @@ public class Basket implements Serializable {
 
             basket = (Basket) ois.readObject();
 
-            for (int i = 0; i < countFromFile.length; i++) {
-                countFromFile[i] = ois.readInt();
+            int[] countFromFile = Arrays.stream(new int[]{ois.readInt()})
+                     .toArray();
+
+             for (int i = 0; i < countFromFile.length; i++) {
+                if (countFromFile[i] != 0) {
+                    basket.addToCart(i, countFromFile[i]);
+                }
+
             }
-
-
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
-        }
-        for (int i = 0; i < countFromFile.length; i++) {
-            if (countFromFile[i] != 0) {
-                basket.addToCart(i, countFromFile[i]);
-            }
         }
         return basket;
     }
 
 
-    public static Basket loadFromTxtFile(File textFile) throws IOException {
-        Basket basket = new Basket(prices, products);
-        try (FileReader reader = new FileReader(textFile)) {
+   /* public static Basket loadFromTxtFile(File textFile) throws IOException {
+        Basket basket = null;
+                try (FileReader reader = new FileReader(textFile)) {
             Scanner scanner = new Scanner(reader);
             while (scanner.hasNextLine()) {
                 String input = scanner.nextLine();
 
-                countFromFile = Arrays.stream(input.split(" "))
+                int[] countFromFile = Arrays.stream(input.split(" "))
                         .mapToInt(Integer::parseInt)
                         .toArray();
-            }
+                for (int i = 0; i < countFromFile.length; i++) {
+                    if (countFromFile[i] != 0) {
+                        basket.addToCart(i, countFromFile[i]);
+                    }
+                }
+                }
 
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
-        for (int i = 0; i < countFromFile.length; i++) {
-            if (countFromFile[i] != 0) {
-                basket.addToCart(i, countFromFile[i]);
-            }
-
-        }
         return basket;
+    }*/
+
+    public String[] setProducts(String[] products) {
+        this.products = products;
+        return products;
     }
 
-    public void setProducts(String[] products) {
-        Basket.products = products;
-    }
-
-    public void setPrices(int[] prices) {
-        Basket.prices = prices;
+    public int[] setPrices(int[] prices) {
+        this.prices = prices;
+        return prices;
     }
 
     public String[] getProducts() {
