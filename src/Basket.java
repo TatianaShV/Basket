@@ -101,8 +101,6 @@ public class Basket {
                     basket.addToCart(i, countFromFile[i]);
                 }
             }
-            //}
-
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
