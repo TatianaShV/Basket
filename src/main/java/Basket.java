@@ -1,8 +1,11 @@
 
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 import java.io.*;
-import java.util.Arrays;
-import java.util.Scanner;
 import java.util.function.ToIntFunction;
 
 public class Basket {
@@ -10,7 +13,7 @@ public class Basket {
     private static ToIntFunction<String> stringToIntFunction;
     protected String[] products;
     protected int[] prices;
-    protected int sumProduct = 0;
+    protected int sumProduct;
     protected int[] count;
     protected int[] sum;
     protected int[] countFromFile;
@@ -24,7 +27,7 @@ public class Basket {
     }
 
     public void addToCart(int productNum, int amount) {
-        //Basket basket = new Basket(prices, products);
+
         int currentPrice = prices[productNum];
         int sumProducts = amount * currentPrice;
         count[productNum] += amount;
@@ -46,25 +49,58 @@ public class Basket {
         System.out.println("Итого: " + sumProduct);
     }
 
-    public void saveTxt(File textFile) throws IOException {
-        try (PrintWriter out = new PrintWriter(textFile)) {
-            for (String p : getProducts()) {
-                out.print(p + ",");
-            }
-            out.print("\n");
-            for (int pr : getPrices()) {
-                out.print(pr + ";");
-            }
-            out.print("\n");
-            for (int i : count) {
-                out.print(i + " ");
-            }
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
-    }
+    /*  public void saveTxt(File textFile) throws IOException {
+          try (PrintWriter out = new PrintWriter(textFile)) {
+              for (String p : getProducts()) {
+                  out.print(p + ",");
+              }
+              out.print("\n");
+              for (int pr : getPrices()) {
+                  out.print(pr + ";");
+              }
+              out.print("\n");
+              for (int i : count) {
+                  out.print(i + " ");
+              }
+          } catch (IOException e) {
+              System.out.println(e.getMessage());
+          }
+      }*/
+   /* public void loadFromJsonFile(File textFile) throws IOException {
+        Basket basket = null;*/
+      /*  JSONParser parser = new JSONParser();
+        try {
+            Object obj = parser.parse(new FileReader("basket.json"));
+            JSONObject basketParsedJson = (JSONObject) obj;
+            JSONArray productJson = (JSONArray) basketParsedJson.get("product");
+            JSONArray priceJson = (JSONArray) basketParsedJson.get("price");
+            JSONArray amountJson = (JSONArray) basketParsedJson.get("amount");
+            String[] product = (String[]) productJson.stream()
+                    .flatMap(Object::toString)
+                    .toArray();
+            int[] prices = new int[priceJson.size()];
+            int[] amount = new int[amountJson.size()];
+            for (Object o : priceJson) {
 
-    public static void loadFromTxtFile(File textFile) throws IOException {
+                for (int i = 0; i < prices.length; ++i) {
+                    prices[i] = (int) o;
+                }
+                basket = new Basket(prices, product);
+
+                for (Object ob : amountJson) {
+                    for (int i = 0; i < amount.length; i++) {
+                        amount[i] = (int) ob;
+                    }
+                }for (int i = 0; i < amount.length; i++) {
+                    if (amount[i] != 0) {
+                        basket.addToCart(i, amount[i]);
+                    }
+            }
+        }}catch (IOException | ParseException e) {
+            e.printStackTrace();
+        }
+    }*/
+    /*public static void loadFromTxtFile(File textFile) throws IOException {
         Basket basket = null;
         try (FileReader reader = new FileReader(textFile)) {
             Scanner scanner = new Scanner(reader);
@@ -105,7 +141,7 @@ public class Basket {
             System.out.println(e.getMessage());
         }
 
-    }
+    }*/
 
     public void setProducts(String[] products) {
         this.products = products;
@@ -122,4 +158,12 @@ public class Basket {
     public int[] getPrices() {
         return prices;
     }
-}
+
+    public int[] getCount() {
+        return count;
+    }
+
+    public void setCount(int[] count) {
+        this.count = count;
+    }}
+
