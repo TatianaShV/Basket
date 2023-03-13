@@ -2,7 +2,15 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -10,47 +18,43 @@ import java.io.IOException;
 import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, SAXException, ParserConfigurationException, XPathExpressionException {
         Scanner scanner = new Scanner(System.in);
         String[] items = {"1.Молоко", "2.Яблоки", "3.Хлеб"};
         int[] productsPrices = {100, 150, 90};
-       // File file = new File("basket.txt");
-        ClientLog clientLog = new ClientLog();
-        Basket basket = new Basket(productsPrices, items);
-        JSONObject clientOperationJson = new JSONObject();
-
-        JSONParser parser = new JSONParser();
-        try {
-            Object obj = parser.parse(new FileReader("basket.json"));
-            JSONObject basketParsedJson = (JSONObject) obj;
-            JSONArray productJson = (JSONArray) basketParsedJson.get("product");
-            JSONArray priceJson = (JSONArray) basketParsedJson.get("price");
-            JSONArray amountJson = (JSONArray) basketParsedJson.get("amount");
-           /* String[] product = (String[]) productJson.stream()
-                    .flatMap(Object::toString)
-                    .toArray();
-            int[] prices = new int[priceJson.size()];*/
-            int[] amount = new int[amountJson.size()];
-            /*for (Object o : priceJson) {
-
-                for (int i = 0; i < prices.length; ++i) {
-                    prices[i] = (int) o;
-                }
-                basket = new Basket(prices, product);*/
-
-                for (Object ob : amountJson) {
-                    for (int i = 0; i < amount.length; i++) {
-                        amount[i] = (int) ob;
-                    }
-                }for (int i = 0; i < amount.length; i++) {
-                    if (amount[i] != 0) {
-                        basket.addToCart(i, amount[i]);
-                    }
-                }
-            }catch (IOException | ParseException e) {
-            System.out.println(e);
+        Basket basket = null;
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document doc = builder.parse("config.xml");
+        XPath xPath = XPathFactory.newInstance().newXPath();
+        String loadFileName = xPath
+                .compile("/config/load/fileName")
+                .evaluate(doc);
+        String loadFormat = xPath
+                .compile("/config/load/format")
+                .evaluate(doc);
+        Boolean loadEnabled = Boolean.parseBoolean(xPath
+                .compile("/config/load/enabled")
+                .evaluate(doc));
+        if (loadEnabled) {
+            File loadFile = new File(loadFileName);
+            switch (loadFormat) {
+                case "json":
+                    basket = Basket.loadFromJsonFile(loadFile);
+                    break;
+                case "txt":
+                    basket = Basket.loadFromTxtFile(loadFile);
+                    break;
+            }else{
+                basket = new Basket(productsPrices, items);
+            }
         }
-   // }
+
+        File file = new File("basket.txt");
+        ClientLog clientLog = new ClientLog();
+        //Basket basket = new Basket(productsPrices, items);
+        //  basket.loadFromTxtFile("basket.txt");
+
         while (true) {
             System.out.println("Список возможных товаров для покупки:");
             for (int i = 0; i < items.length; i++) {
@@ -59,7 +63,7 @@ public class Main {
             System.out.println("Выберите номер товара и количество или введите end");
             String input = scanner.nextLine();
             if (input.equals("end")) {
-                break;1
+                break;
             }
             String[] parts = input.split(" ");
             try {
@@ -69,7 +73,7 @@ public class Main {
                 }
                 int productNumber = Integer.parseInt(parts[0]) - 1;
                 int productCount = Integer.parseInt(parts[1]);
-                clientLog.log( Integer.parseInt(parts[0]), productCount);
+                clientLog.log(Integer.parseInt(parts[0]), productCount);
                 clientLog.exportAsCSV(new File("log.csv"));
                 if (productNumber > items.length
                         || productNumber < 0
@@ -82,19 +86,42 @@ public class Main {
             } catch (NumberFormatException e) {
                 System.out.println("Введите два числа! Было введено: " + input);
                 continue;
-            }}
-
-            clientOperationJson.put("product", basket.getProducts());
-            clientOperationJson.put("price", basket.getPrices());
-            clientOperationJson.put("amount", basket.getCount());
-            try (FileWriter file = new FileWriter("basket.json")) {
-
-                file.write(clientOperationJson.toJSONString());
-                file.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            //}
+            }
         }
+        String saveFileName = xPath
+                .compile("/config/save/fileName")
+                .evaluate(doc);
+        String saveFormat = xPath
+                .compile("/config/save/format")
+                .evaluate(doc);
+        Boolean saveEnabled = Boolean.parseBoolean(xPath
+                .compile("/config/save/enabled")
+                .evaluate(doc));
+        if (saveEnabled) {
+            File saveFile = new File(saveFileName);
+            switch (loadFormat) {
+                case "json":
+                    basket.saveJson(saveFile);
+                    break;
+                case "txt":
+                    basket.saveTxt(saveFile);
+                    break;
+            }
+        }
+        String logFileName = xPath
+                .compile("/config/log/fileName")
+                .evaluate(doc);
+
+        Boolean logEnabled = Boolean.parseBoolean(xPath
+                .compile("/config/log/enabled")
+                .evaluate(doc));
+        if (logEnabled) {
+            File logFile = new File(logFileName);
+        }
+
+
+        //basket.saveTxt(file);
+        // basket.saveJson(new File("basket.json"));
         basket.printCart();
     }
 }

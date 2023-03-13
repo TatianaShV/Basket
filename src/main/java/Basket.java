@@ -1,11 +1,14 @@
 
 
+import com.google.gson.Gson;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.*;
+import java.util.Arrays;
+import java.util.Scanner;
 import java.util.function.ToIntFunction;
 
 public class Basket {
@@ -17,6 +20,9 @@ public class Basket {
     protected int[] count;
     protected int[] sum;
     protected int[] countFromFile;
+
+    private Basket() {
+    }
 
 
     public Basket(int[] prices, String[] products) {
@@ -49,121 +55,71 @@ public class Basket {
         System.out.println("Итого: " + sumProduct);
     }
 
-    /*  public void saveTxt(File textFile) throws IOException {
-          try (PrintWriter out = new PrintWriter(textFile)) {
-              for (String p : getProducts()) {
-                  out.print(p + ",");
-              }
-              out.print("\n");
-              for (int pr : getPrices()) {
-                  out.print(pr + ";");
-              }
-              out.print("\n");
-              for (int i : count) {
-                  out.print(i + " ");
-              }
-          } catch (IOException e) {
-              System.out.println(e.getMessage());
-          }
-      }*/
-   /* public void loadFromJsonFile(File textFile) throws IOException {
-        Basket basket = null;*/
-      /*  JSONParser parser = new JSONParser();
-        try {
-            Object obj = parser.parse(new FileReader("basket.json"));
-            JSONObject basketParsedJson = (JSONObject) obj;
-            JSONArray productJson = (JSONArray) basketParsedJson.get("product");
-            JSONArray priceJson = (JSONArray) basketParsedJson.get("price");
-            JSONArray amountJson = (JSONArray) basketParsedJson.get("amount");
-            String[] product = (String[]) productJson.stream()
-                    .flatMap(Object::toString)
-                    .toArray();
-            int[] prices = new int[priceJson.size()];
-            int[] amount = new int[amountJson.size()];
-            for (Object o : priceJson) {
-
-                for (int i = 0; i < prices.length; ++i) {
-                    prices[i] = (int) o;
-                }
-                basket = new Basket(prices, product);
-
-                for (Object ob : amountJson) {
-                    for (int i = 0; i < amount.length; i++) {
-                        amount[i] = (int) ob;
-                    }
-                }for (int i = 0; i < amount.length; i++) {
-                    if (amount[i] != 0) {
-                        basket.addToCart(i, amount[i]);
-                    }
+    public void saveTxt(File file) throws IOException {
+        try (PrintWriter out = new PrintWriter(file)) {
+            for (String p : products) {
+                out.print(p + ",");
             }
-        }}catch (IOException | ParseException e) {
-            e.printStackTrace();
-        }
-    }*/
-    /*public static void loadFromTxtFile(File textFile) throws IOException {
-        Basket basket = null;
-        try (FileReader reader = new FileReader(textFile)) {
-            Scanner scanner = new Scanner(reader);
-            int[] priceFromFile = null;
-            String[] items = null;
-            int[] countFromFile = null;
-            while (scanner.hasNextLine()) {
-                String input = scanner.nextLine();
-
-                if (input.contains(",")) {
-                    items = input.split(",");
-                }
-
-                if (input.contains(";")) {
-                    String[] pp = input.split(";");
-                    priceFromFile = new int[items.length];
-                    for (int i = 0; i < pp.length; i++) {
-
-                        int pr = Integer.parseInt(pp[i]);
-                        priceFromFile[i] = pr;
-                    }
-                }
-
-                if (input.contains(" ")) {
-                    countFromFile = Arrays.stream(input.split(" "))
-                            .mapToInt(Integer::parseInt)
-                            .toArray();
-                }
+            out.print("\n");
+            for (int pr : prices) {
+                out.print(pr + ";");
             }
-
-            basket = new Basket(priceFromFile, items);
-            for (int i = 0; i < countFromFile.length; i++) {
-                if (countFromFile[i] != 0) {
-                    basket.addToCart(i, countFromFile[i]);
-                }
+            out.print("\n");
+            for (int i : count) {
+                out.print(i + " ");
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
-
-    }*/
-
-    public void setProducts(String[] products) {
-        this.products = products;
     }
 
-    public void setPrices(int[] prices) {
-        this.prices = prices;
+    public void saveJson(File file) throws IOException {
+        try (PrintWriter out = new PrintWriter(file)) {
+            Gson gson = new Gson();
+            String clientOperationJson = gson.toJson(this);
+            out.println(clientOperationJson);
+        }
     }
 
-    public String[] getProducts() {
-        return products;
-    }
+    public static Basket loadFromJsonFile(File file) throws IOException {
 
-    public int[] getPrices() {
-        return prices;
-    }
+        try (Scanner scanner = new Scanner(file)) {
+            Gson gson = new Gson();
+            String json = scanner.nextLine();
+            Basket basket = gson.fromJson(json, Basket.class);
+            return basket;
+        }
 
-    public int[] getCount() {
-        return count;
-    }
 
-    public void setCount(int[] count) {
-        this.count = count;
-    }}
+        public static Basket loadFromTxtFile (File file) throws IOException {
+            try (Scanner scanner = new Scanner(file)) {
+                int[] priceFromFile = null;
+                String[] items = null;
+                int[] countFromFile = null;
+                while (scanner.hasNextLine()) {
+                    String input = scanner.nextLine();
+                    if (input.contains(",")) {
+                        items = input.split(",");
+                    }
+                    if (input.contains(";")) {
+                        String[] pp = input.split(";");
+                        priceFromFile = new int[items.length];
+                        for (int i = 0; i < pp.length; i++) {
+                            int pr = Integer.parseInt(pp[i]);
+                            priceFromFile[i] = pr;
+                        }
+                    }
+                    if (input.contains(" ")) {
+                        countFromFile = Arrays.stream(input.split(" "))
+                                .mapToInt(Integer::parseInt)
+                                .toArray();
+                    }
+                }
+                Basket basket = new Basket(priceFromFile, items);
+                basket.count = countFromFile;
+                return basket;
+            }
+        }
+    }
+}
 
