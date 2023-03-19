@@ -21,9 +21,6 @@ public class Basket {
     protected int[] sum;
     protected int[] countFromFile;
 
-    private Basket() {
-    }
-
 
     public Basket(int[] prices, String[] products) {
         this.prices = prices;
@@ -89,7 +86,7 @@ public class Basket {
             Basket basket = gson.fromJson(json, Basket.class);
             return basket;
         }
-
+    }
 
         public static Basket loadFromTxtFile (File file) throws IOException {
             try (Scanner scanner = new Scanner(file)) {
@@ -121,5 +118,5 @@ public class Basket {
             }
         }
     }
-}
+
 
